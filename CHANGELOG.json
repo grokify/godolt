@@ -1,0 +1,34 @@
+{
+  "irVersion": "1.0",
+  "project": "godolt",
+  "repository": "https://github.com/grokify/godolt",
+  "versioning": "semver",
+  "commitConvention": "conventional",
+  "maintainers": ["grokify", "johncwang@gmail.com"],
+  "releases": [
+    {
+      "version": "v0.1.0",
+      "date": "2026-08-16",
+      "commit": "c7ec856",
+      "highlights": [
+        { "description": "SQL-wire `Client` for remotes, push/pull/fetch, and active branch — zero added driver dependencies, the caller supplies the `*sql.DB`", "commit": "c7ec856" },
+        { "description": "CLI-exec bootstrap (`Clone`, `InitDir`) and backup (`BackupAdd`, `BackupSync`, `BackupRestore`) operations for the cold path", "commit": "58c94f1" }
+      ],
+      "added": [
+        { "description": "`New(db *sql.DB) *Client` wraps an existing connection to a `dolt sql-server`", "commit": "c7ec856" },
+        { "description": "`Client.RemoteAdd`, `Client.RemoteRemove`, `Client.Remotes` — register, remove, and list configured remotes via `CALL DOLT_REMOTE(...)`", "commit": "c7ec856" },
+        { "description": "`Client.Push`, `Client.Pull`, `Client.Fetch` — sync against a remote via `CALL DOLT_PUSH`/`DOLT_PULL`/`DOLT_FETCH`", "commit": "c7ec856" },
+        { "description": "`Client.ActiveBranch` — the connection's active branch via `SELECT active_branch()`", "commit": "c7ec856" },
+        { "description": "Argument validation (`quotable`) rejects characters that could escape a single-quoted SQL literal", "commit": "c7ec856" },
+        { "description": "`Clone(ctx, remoteURL, dir)` and `InitDir(ctx, dir, name, email)` — CLI-exec bootstrap operations for when no server exists yet", "commit": "58c94f1" },
+        { "description": "`Available()` reports whether the `dolt` CLI is on `PATH`", "commit": "58c94f1" },
+        { "description": "`BackupAdd`, `BackupSync`, `BackupRestore` — named backup targets, snapshot/sync, and restore; no `DOLT_BACKUP` stored procedure exists, so these are CLI-exec only", "commit": "58c94f1" }
+      ],
+      "documentation": [
+        { "description": "README with installation, usage examples, and a full API reference table", "commit": "78c7750" },
+        { "description": "MkDocs site (mirroring gogit's structure) with a Releases section for version history", "commit": "78c7750" },
+        { "description": "MIT license", "commit": "78c7750" }
+      ]
+    }
+  ]
+}
