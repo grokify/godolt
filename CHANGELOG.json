@@ -27,7 +27,15 @@
       "documentation": [
         { "description": "README with installation, usage examples, and a full API reference table", "commit": "78c7750" },
         { "description": "MkDocs site (mirroring gogit's structure) with a Releases section for version history", "commit": "78c7750" },
-        { "description": "MIT license", "commit": "78c7750" }
+        { "description": "MIT license", "commit": "78c7750" },
+        { "description": "README badges for CI, lint, SAST, godoc, MkDocs, visualization, and license status", "commit": "ee63d5d" }
+      ],
+      "build": [
+        { "description": "Shared CI workflows: Go CI (test matrix across Linux/macOS/Windows), Go Lint (golangci-lint), Go SAST (CodeQL), and Dependabot config", "commit": "09e5ed1" },
+        { "description": ".gitignore for mkdocs build output and local env files", "commit": "3358298" }
+      ],
+      "internal": [
+        { "description": "Removed the unused `status` result from `Client.call` (golangci-lint unparam) — every caller already relied on `call` turning a nonzero status into an error internally", "commit": "5ca468b" }
       ]
     }
   ]
