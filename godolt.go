@@ -44,10 +44,10 @@ func quotable(arg string) error {
 	return nil
 }
 
-func (c *Client) call(ctx context.Context, proc string, args ...string) (status int, message string, err error) {
+func (c *Client) call(ctx context.Context, proc string, args ...string) (message string, err error) {
 	for _, a := range args {
 		if err := quotable(a); err != nil {
-			return 0, "", err
+			return "", err
 		}
 	}
 	quoted := make([]string, len(args))
@@ -59,44 +59,45 @@ func (c *Client) call(ctx context.Context, proc string, args ...string) (status 
 	q := fmt.Sprintf("CALL %s(%s)", proc, strings.Join(quoted, ","))
 	rows, err := c.DB.QueryContext(ctx, q)
 	if err != nil {
-		return 0, "", fmt.Errorf("godolt: %s: %w", proc, err)
+		return "", fmt.Errorf("godolt: %s: %w", proc, err)
 	}
 	defer func() { _ = rows.Close() }()
 
 	cols, err := rows.Columns()
 	if err != nil {
-		return 0, "", err
+		return "", err
 	}
+	var status int
 	if rows.Next() {
 		switch len(cols) {
 		case 1:
 			if err := rows.Scan(&status); err != nil {
-				return 0, "", err
+				return "", err
 			}
 		default:
 			if err := rows.Scan(&status, &message); err != nil {
-				return 0, "", err
+				return "", err
 			}
 		}
 	}
 	if err := rows.Err(); err != nil {
-		return status, message, err
+		return message, err
 	}
 	if status != 0 {
-		return status, message, fmt.Errorf("godolt: %s returned status %d: %s", proc, status, message)
+		return message, fmt.Errorf("godolt: %s returned status %d: %s", proc, status, message)
 	}
-	return status, message, nil
+	return message, nil
 }
 
 // RemoteAdd registers a remote (CALL DOLT_REMOTE('add', name, url)).
 func (c *Client) RemoteAdd(ctx context.Context, name, url string) error {
-	_, _, err := c.call(ctx, "DOLT_REMOTE", "add", name, url)
+	_, err := c.call(ctx, "DOLT_REMOTE", "add", name, url)
 	return err
 }
 
 // RemoteRemove removes a remote.
 func (c *Client) RemoteRemove(ctx context.Context, name string) error {
-	_, _, err := c.call(ctx, "DOLT_REMOTE", "remove", name)
+	_, err := c.call(ctx, "DOLT_REMOTE", "remove", name)
 	return err
 }
 
@@ -121,19 +122,17 @@ func (c *Client) Remotes(ctx context.Context) ([]Remote, error) {
 // Push pushes branch to remote (CALL DOLT_PUSH). Returns the server
 // message (e.g. "Everything up-to-date").
 func (c *Client) Push(ctx context.Context, remote, branch string) (string, error) {
-	_, msg, err := c.call(ctx, "DOLT_PUSH", remote, branch)
-	return msg, err
+	return c.call(ctx, "DOLT_PUSH", remote, branch)
 }
 
 // Pull pulls branch from remote (CALL DOLT_PULL).
 func (c *Client) Pull(ctx context.Context, remote, branch string) (string, error) {
-	_, msg, err := c.call(ctx, "DOLT_PULL", remote, branch)
-	return msg, err
+	return c.call(ctx, "DOLT_PULL", remote, branch)
 }
 
 // Fetch fetches from remote (CALL DOLT_FETCH).
 func (c *Client) Fetch(ctx context.Context, remote string) error {
-	_, _, err := c.call(ctx, "DOLT_FETCH", remote)
+	_, err := c.call(ctx, "DOLT_FETCH", remote)
 	return err
 }
 
