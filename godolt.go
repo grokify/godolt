@@ -125,9 +125,48 @@ func (c *Client) Push(ctx context.Context, remote, branch string) (string, error
 	return c.call(ctx, "DOLT_PUSH", remote, branch)
 }
 
-// Pull pulls branch from remote (CALL DOLT_PULL).
-func (c *Client) Pull(ctx context.Context, remote, branch string) (string, error) {
-	return c.call(ctx, "DOLT_PULL", remote, branch)
+// PullResult reports the outcome of a CALL DOLT_PULL.
+type PullResult struct {
+	FastForward bool
+	Conflicts   int
+	Message     string
+}
+
+// Pull pulls branch from remote (CALL DOLT_PULL) and merges into the
+// active branch. DOLT_PULL returns three columns (fast_forward,
+// conflicts, message) — a different shape from every other stored
+// procedure call() handles, so Pull scans it directly rather than going
+// through call(). A non-zero Conflicts count means DOLT_PULL completed
+// the merge but left conflict rows in dolt_conflicts_<table> for the
+// caller to resolve; it is not returned as an error, since that is
+// expected, resolvable local state, not a failure of the pull itself.
+func (c *Client) Pull(ctx context.Context, remote, branch string) (*PullResult, error) {
+	for _, a := range []string{remote, branch} {
+		if err := quotable(a); err != nil {
+			return nil, err
+		}
+	}
+	// #nosec G201 -- remote and branch are validated by quotable above.
+	q := fmt.Sprintf("CALL DOLT_PULL('%s','%s')", remote, branch)
+	rows, err := c.DB.QueryContext(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("godolt: DOLT_PULL: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var res PullResult
+	if rows.Next() {
+		var fastForward, conflicts int
+		if err := rows.Scan(&fastForward, &conflicts, &res.Message); err != nil {
+			return nil, fmt.Errorf("godolt: DOLT_PULL: scan result: %w", err)
+		}
+		res.FastForward = fastForward != 0
+		res.Conflicts = conflicts
+	}
+	if err := rows.Err(); err != nil {
+		return &res, err
+	}
+	return &res, nil
 }
 
 // Fetch fetches from remote (CALL DOLT_FETCH).
