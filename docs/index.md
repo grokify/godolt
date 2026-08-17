@@ -8,7 +8,7 @@ godolt wraps [Dolt](https://www.dolthub.com/)'s operational surface for Go progr
 
 - **Client** — `New(db *sql.DB)` wraps an existing `*sql.DB` connection to a `dolt sql-server`; the caller owns the driver, pooling, and DSN.
 - **Remotes** — `Client.RemoteAdd`, `Client.RemoteRemove`, and `Client.Remotes` register, remove, and list configured remotes (`CALL DOLT_REMOTE(...)`).
-- **Sync** — `Client.Push`, `Client.Pull`, and `Client.Fetch` push/pull/fetch against a remote (`CALL DOLT_PUSH`/`DOLT_PULL`/`DOLT_FETCH`), returning the server's status message.
+- **Sync** — `Client.Push` and `Client.Fetch` push/fetch against a remote (`CALL DOLT_PUSH`/`DOLT_FETCH`), returning the server's status message. Push is fast-forward-only; a diverged remote rejects it. `Client.Pull` fetches and merges a remote's branch (`CALL DOLT_PULL`), returning `*PullResult` (`FastForward`, `Conflicts`, `Message`) — a non-zero `Conflicts` means the merge completed but left conflict rows in `dolt_conflicts_<table>` for the caller to resolve locally.
 - **Branch** — `Client.ActiveBranch` returns the connection's active branch (`SELECT active_branch()`).
 - **Bootstrap** — `Clone(ctx, remoteURL, dir)` and `InitDir(ctx, dir, name, email)` are cold-path operations that shell out to the `dolt` CLI, since no server exists yet to talk to.
 - **Availability** — `Available()` reports whether the `dolt` CLI is on `PATH`, the cold path's prerequisite.
@@ -30,4 +30,4 @@ Install:
 go get github.com/grokify/godolt
 ```
 
-See the [README](https://github.com/grokify/godolt#readme) for full usage examples, and [Releases](releases/v0.1.0.md) for version history.
+See the [README](https://github.com/grokify/godolt#readme) for full usage examples, and [Releases](releases/v0.2.0.md) for version history.

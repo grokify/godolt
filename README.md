@@ -45,7 +45,8 @@ msg, err := client.Push(ctx, "origin", "main")
 |---------|-------------|--------------|
 | Client | `New(db *sql.DB)` | Wraps an existing `*sql.DB` connection to a `dolt sql-server`; the caller owns the driver, pooling, and DSN |
 | Remotes | `Client.RemoteAdd`, `Client.RemoteRemove`, `Client.Remotes` | Register, remove, and list configured remotes (`CALL DOLT_REMOTE(...)`) |
-| Sync | `Client.Push`, `Client.Pull`, `Client.Fetch` | Push/pull/fetch against a remote (`CALL DOLT_PUSH`/`DOLT_PULL`/`DOLT_FETCH`), returning the server's status message |
+| Sync | `Client.Push`, `Client.Fetch` | Push/fetch against a remote (`CALL DOLT_PUSH`/`DOLT_FETCH`), returning the server's status message |
+| Sync | `Client.Pull` | Pull and merge a remote's branch (`CALL DOLT_PULL`); returns `*PullResult` (`FastForward`, `Conflicts`, `Message`) — a non-zero `Conflicts` means the merge completed but left conflict rows in `dolt_conflicts_<table>` for the caller to resolve |
 | Branch | `Client.ActiveBranch` | The connection's active branch (`SELECT active_branch()`) |
 | Bootstrap | `Clone(ctx, remoteURL, dir)`, `InitDir(ctx, dir, name, email)` | Cold-path operations that shell out to the `dolt` CLI, since no server exists yet to talk to |
 | Availability | `Available()` | Reports whether the `dolt` CLI is on `PATH` — the cold path's prerequisite |
@@ -84,6 +85,14 @@ if err := client.RemoteAdd(ctx, "origin", "file:///path/to/remote"); err != nil 
 remotes, err := client.Remotes(ctx)
 
 msg, err := client.Push(ctx, "origin", "main")
+
+// Push is fast-forward-only: a remote with commits the local branch
+// doesn't have rejects the push (error contains "non-fast-forward").
+// Pull to fetch and merge before pushing again.
+result, err := client.Pull(ctx, "origin", "main")
+if result.Conflicts > 0 {
+	// Merge completed; resolve dolt_conflicts_<table> rows before pushing.
+}
 
 branch, err := client.ActiveBranch(ctx)
 ```
