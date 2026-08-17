@@ -7,6 +7,20 @@
   "maintainers": ["grokify", "johncwang@gmail.com"],
   "releases": [
     {
+      "version": "v0.2.0",
+      "date": "2026-08-17",
+      "commit": "623fd1e",
+      "highlights": [
+        { "description": "Fixed Client.Pull, which errored on every call since v0.1.0 — CALL DOLT_PULL returns a 3-column result the shared call() helper couldn't scan", "commit": "623fd1e" }
+      ],
+      "fixed": [
+        { "description": "Client.Pull now scans DOLT_PULL's actual (fast_forward, conflicts, message) result directly instead of assuming the 1-or-2-column shape shared by every other stored procedure; verified against a real dolt sql-server reproducing true history divergence", "commit": "623fd1e" }
+      ],
+      "breaking": [
+        { "description": "Client.Pull's return type changes from (string, error) to (*PullResult, error), exposing FastForward and Conflicts alongside the status message; there is no compatible old signature to preserve since every prior call errored unconditionally", "commit": "623fd1e" }
+      ]
+    },
+    {
       "version": "v0.1.0",
       "date": "2026-08-16",
       "commit": "c7ec856",
