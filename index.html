@@ -14,7 +14,7 @@
       
       
       
-        <link rel="next" href="releases/v0.1.0/">
+        <link rel="next" href="releases/v0.2.0/">
       
       
         
@@ -395,6 +395,34 @@
   
   
     <li class="md-nav__item">
+      <a href="releases/v0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="releases/v0.1.0/" class="md-nav__link">
         
   
@@ -487,7 +515,7 @@
 <ul>
 <li><strong>Client</strong> — <code>New(db *sql.DB)</code> wraps an existing <code>*sql.DB</code> connection to a <code>dolt sql-server</code>; the caller owns the driver, pooling, and DSN.</li>
 <li><strong>Remotes</strong> — <code>Client.RemoteAdd</code>, <code>Client.RemoteRemove</code>, and <code>Client.Remotes</code> register, remove, and list configured remotes (<code>CALL DOLT_REMOTE(...)</code>).</li>
-<li><strong>Sync</strong> — <code>Client.Push</code>, <code>Client.Pull</code>, and <code>Client.Fetch</code> push/pull/fetch against a remote (<code>CALL DOLT_PUSH</code>/<code>DOLT_PULL</code>/<code>DOLT_FETCH</code>), returning the server's status message.</li>
+<li><strong>Sync</strong> — <code>Client.Push</code> and <code>Client.Fetch</code> push/fetch against a remote (<code>CALL DOLT_PUSH</code>/<code>DOLT_FETCH</code>), returning the server's status message. Push is fast-forward-only; a diverged remote rejects it. <code>Client.Pull</code> fetches and merges a remote's branch (<code>CALL DOLT_PULL</code>), returning <code>*PullResult</code> (<code>FastForward</code>, <code>Conflicts</code>, <code>Message</code>) — a non-zero <code>Conflicts</code> means the merge completed but left conflict rows in <code>dolt_conflicts_&lt;table&gt;</code> for the caller to resolve locally.</li>
 <li><strong>Branch</strong> — <code>Client.ActiveBranch</code> returns the connection's active branch (<code>SELECT active_branch()</code>).</li>
 <li><strong>Bootstrap</strong> — <code>Clone(ctx, remoteURL, dir)</code> and <code>InitDir(ctx, dir, name, email)</code> are cold-path operations that shell out to the <code>dolt</code> CLI, since no server exists yet to talk to.</li>
 <li><strong>Availability</strong> — <code>Available()</code> reports whether the <code>dolt</code> CLI is on <code>PATH</code>, the cold path's prerequisite.</li>
@@ -504,7 +532,7 @@
 <p>Install:</p>
 <div class="highlight"><pre><span></span><code>go<span class="w"> </span>get<span class="w"> </span>github.com/grokify/godolt
 </code></pre></div>
-<p>See the <a href="https://github.com/grokify/godolt#readme">README</a> for full usage examples, and <a href="releases/v0.1.0/">Releases</a> for version history.</p>
+<p>See the <a href="https://github.com/grokify/godolt#readme">README</a> for full usage examples, and <a href="releases/v0.2.0/">Releases</a> for version history.</p>
 
 
 
