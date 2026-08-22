@@ -48,6 +48,10 @@ msg, err := client.Push(ctx, "origin", "main")
 | Sync | `Client.Push`, `Client.Fetch` | Push/fetch against a remote (`CALL DOLT_PUSH`/`DOLT_FETCH`), returning the server's status message |
 | Sync | `Client.Pull` | Pull and merge a remote's branch (`CALL DOLT_PULL`); returns `*PullResult` (`FastForward`, `Conflicts`, `Message`) — a non-zero `Conflicts` means the merge completed but left conflict rows in `dolt_conflicts_<table>` for the caller to resolve |
 | Branch | `Client.ActiveBranch` | The connection's active branch (`SELECT active_branch()`) |
+| Commits | `Client.HasUncommittedChanges`, `Client.AddAll`, `Client.Commit`, `Client.CommitAll` | Dirty-status check (`dolt_status`), stage all (`CALL DOLT_ADD('.')`), and commit (`CALL DOLT_COMMIT`) returning the new hash; `CommitAll` is a no-op on a clean working set — the pattern applications use to wrap sync runs in Dolt commits |
+| Databases | `CreateDatabase(ctx, db, name)` | `CREATE DATABASE IF NOT EXISTS` over a server-wide connection (no database selected — see `SplitDSN`) |
+| DSN helpers | `LocalDSN`, `EnsureParseTime`, `SplitDSN` | Build the conventional local-server DSN, append `parseTime=true` for ORMs like Ent, and split a DSN into its server-wide base and database name |
+| Server lifecycle | `ServerReachable`, `StartServer`, `EnsureServer` | Probe an address, launch `dolt sql-server` over a data directory and wait for readiness (caller owns the process), or ensure one is serving — launching detached if not (the shared local-server pattern) |
 | Bootstrap | `Clone(ctx, remoteURL, dir)`, `InitDir(ctx, dir, name, email)` | Cold-path operations that shell out to the `dolt` CLI, since no server exists yet to talk to |
 | Availability | `Available()` | Reports whether the `dolt` CLI is on `PATH` — the cold path's prerequisite |
 | Backups | `BackupAdd`, `BackupSync`, `BackupRestore` | Named backup targets, snapshot/sync, and restore — no `DOLT_BACKUP` stored procedure exists, so these are CLI-exec only. Verified safe to run against a directory a live `dolt sql-server` is actively serving |
@@ -95,6 +99,50 @@ if result.Conflicts > 0 {
 }
 
 branch, err := client.ActiveBranch(ctx)
+```
+
+### Application store pattern (server lifecycle + commits)
+
+The pattern shared by visionstudio, omniroadmap, and uiforge: ensure a
+long-lived local `dolt sql-server` over a data directory, create the app's
+database, connect with Ent (or any MySQL client), and wrap write runs in Dolt
+commits.
+
+```go
+// Ensure a shared local server is running (launches detached if not).
+if err := godolt.EnsureServer("/path/to/data", 13307); err != nil {
+	log.Fatal(err)
+}
+
+// Create the database if needed, connecting server-wide first.
+dsn := godolt.EnsureParseTime(godolt.LocalDSN(13307, "myapp"))
+base, dbName, err := godolt.SplitDSN(dsn)
+if err != nil {
+	log.Fatal(err)
+}
+serverDB, err := sql.Open("mysql", base)
+if err != nil {
+	log.Fatal(err)
+}
+if err := godolt.CreateDatabase(ctx, serverDB, dbName); err != nil {
+	log.Fatal(err)
+}
+_ = serverDB.Close()
+
+// Connect to the database and wrap work in a Dolt commit.
+db, err := sql.Open("mysql", dsn)
+if err != nil {
+	log.Fatal(err)
+}
+client := godolt.New(db)
+// ... write rows ...
+hash, err := client.CommitAll(ctx, "sync run 2026-08-19")
+if err != nil {
+	log.Fatal(err)
+}
+if hash == "" {
+	// Clean working set — nothing to commit.
+}
 ```
 
 ### Cold path: bootstrap and backups
