@@ -14,7 +14,7 @@
       
       
       
-        <link rel="next" href="releases/v0.2.0/">
+        <link rel="next" href="releases/v0.3.0/">
       
       
         
@@ -395,6 +395,34 @@
   
   
     <li class="md-nav__item">
+      <a href="releases/v0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.3.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="releases/v0.2.0/" class="md-nav__link">
         
   
@@ -517,6 +545,10 @@
 <li><strong>Remotes</strong> — <code>Client.RemoteAdd</code>, <code>Client.RemoteRemove</code>, and <code>Client.Remotes</code> register, remove, and list configured remotes (<code>CALL DOLT_REMOTE(...)</code>).</li>
 <li><strong>Sync</strong> — <code>Client.Push</code> and <code>Client.Fetch</code> push/fetch against a remote (<code>CALL DOLT_PUSH</code>/<code>DOLT_FETCH</code>), returning the server's status message. Push is fast-forward-only; a diverged remote rejects it. <code>Client.Pull</code> fetches and merges a remote's branch (<code>CALL DOLT_PULL</code>), returning <code>*PullResult</code> (<code>FastForward</code>, <code>Conflicts</code>, <code>Message</code>) — a non-zero <code>Conflicts</code> means the merge completed but left conflict rows in <code>dolt_conflicts_&lt;table&gt;</code> for the caller to resolve locally.</li>
 <li><strong>Branch</strong> — <code>Client.ActiveBranch</code> returns the connection's active branch (<code>SELECT active_branch()</code>).</li>
+<li><strong>Commits</strong> — <code>Client.HasUncommittedChanges</code>, <code>Client.AddAll</code>, <code>Client.Commit</code>, and <code>Client.CommitAll</code> check the working set (<code>dolt_status</code>), stage everything (<code>CALL DOLT_ADD('.')</code>), and commit (<code>CALL DOLT_COMMIT</code>, returning the new hash). <code>CommitAll</code> is a no-op on a clean working set — the pattern applications use to wrap sync runs in Dolt commits.</li>
+<li><strong>Databases</strong> — <code>CreateDatabase(ctx, db, name)</code> runs <code>CREATE DATABASE IF NOT EXISTS</code> over a server-wide connection (no database selected — see <code>SplitDSN</code>).</li>
+<li><strong>DSN helpers</strong> — <code>LocalDSN</code>, <code>EnsureParseTime</code>, and <code>SplitDSN</code> build the conventional local-server DSN, append <code>parseTime=true</code> for ORMs like Ent, and split a DSN into its server-wide base and database name. Pure string helpers — no driver dependency added.</li>
+<li><strong>Server lifecycle</strong> — <code>ServerReachable</code>, <code>StartServer</code>, and <code>EnsureServer</code> probe an address, launch <code>dolt sql-server</code> over a data directory and wait for readiness (the caller owns the process), or ensure one is serving — launching it detached if not, the shared local-server pattern from visionstudio and omniroadmap.</li>
 <li><strong>Bootstrap</strong> — <code>Clone(ctx, remoteURL, dir)</code> and <code>InitDir(ctx, dir, name, email)</code> are cold-path operations that shell out to the <code>dolt</code> CLI, since no server exists yet to talk to.</li>
 <li><strong>Availability</strong> — <code>Available()</code> reports whether the <code>dolt</code> CLI is on <code>PATH</code>, the cold path's prerequisite.</li>
 <li><strong>Backups</strong> — <code>BackupAdd</code>, <code>BackupSync</code>, and <code>BackupRestore</code> manage named backup targets, snapshot/sync, and restore. No <code>DOLT_BACKUP</code> stored procedure exists, so these are CLI-exec only — verified safe to run against a directory a live <code>dolt sql-server</code> is actively serving.</li>
@@ -532,7 +564,7 @@
 <p>Install:</p>
 <div class="highlight"><pre><span></span><code>go<span class="w"> </span>get<span class="w"> </span>github.com/grokify/godolt
 </code></pre></div>
-<p>See the <a href="https://github.com/grokify/godolt#readme">README</a> for full usage examples, and <a href="releases/v0.2.0/">Releases</a> for version history.</p>
+<p>See the <a href="https://github.com/grokify/godolt#readme">README</a> for full usage examples, and <a href="releases/v0.3.0/">Releases</a> for version history.</p>
 
 
 
